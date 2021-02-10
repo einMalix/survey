@@ -1,0 +1,4 @@
+mariadb_host: 'localhost'
+mariadb_user: 'admin'
+mariadb_password: 'Password123!'
+mariadb_db: 'test_db'

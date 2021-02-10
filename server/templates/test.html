@@ -1,0 +1,14 @@
+<form method="POST" action="">
+    Vorname <input type="text" name="vorname" />
+    <br>
+    Nachname <input type="text" name="nachname" />
+    <br>
+    <input type="submit">
+</form>
+<table>
+    {% for row in data %}
+        <tr>
+            <td>{{row[0]}}</td>
+        </tr>
+    {% endfor %}
+</table>
