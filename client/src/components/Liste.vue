@@ -1,6 +1,13 @@
 <template>
 <div>
- <button type="button">Kursleiter hinzufügen</button>
+    <form>
+    Vorname <input name="vorname" type="text" v-model="newVorname" />
+    <br>
+    Nachname <input name="nachname" type="text" v-model="newNachname" />
+    <br>
+    <button v-on:click="onSubmit()">Submit</button>
+    </form>
+    <br>
  <table>
     <thead>
     <tr>
@@ -34,10 +41,12 @@ export default {
   data() {
     return {
       instructors: '',
+      newVorname: '',
+      newNachname: '',
     };
   },
   methods: {
-    getMessage() {
+    getInstructors() {
       const path = 'http://localhost:5000/liste';
       axios.get(path)
         .then((res) => {
@@ -48,9 +57,31 @@ export default {
           console.error(error);
         });
     },
+    addInstructor() {
+      const path = 'http://localhost:5000/add';
+      axios.post(path, {
+        vorname: this.newVorname,
+        nachname: this.newNachname,
+      })
+        .then((response) => {
+        // eslint-disable-next-line
+          console.log(response);
+        }, (error) => {
+        // eslint-disable-next-line
+          console.log(error);
+        });
+    },
+    onSubmit() {
+      if (this.newVorname === '' || this.newNachname === '') {
+      // eslint-disable-next-line
+        console.error(error);
+      } else {
+        this.addInstructor();
+      }
+    },
   },
   created() {
-    this.getMessage();
+    this.getInstructors();
   },
 };
 </script>

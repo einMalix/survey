@@ -24,29 +24,16 @@ except mariadb.Error as e:
     sys.exit(1)
 
 
-#mariadb = mariadb(app)
-'''try:
-    conn = mariadb.connect(
-        user="",
-        password="",
-        host="",
-        port="",
-        database=""
-    )
-except mariadb.Error as e:
-    print(f"Error connecting to MariaDB Platform: {e}")
-    sys.exit(1)'''
-
-
 CORS(app, resources={r'/*': {'origins': '*'}})
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/add', methods=['GET', 'POST'])
 def test():
+    print("TEST")
     response_object = {'status': 'success'}
     if request.method == 'POST':
-        personDetails = request.form
-        vorname = personDetails['vorname']
-        nachname = personDetails['nachname']
+        personData = request.get_json()
+        vorname = personData['vorname']
+        nachname = personData['nachname']
         cur = conn.cursor()
         cur.execute("INSERT INTO Person(vorname, nachname) VALUES(%s, %s)",(vorname, nachname))
         conn.commit()
@@ -55,49 +42,13 @@ def test():
     return jsonify(response_object)
         
 
-
-
-
-@app.route('/test', methods=['GET', 'POST'])
-def test_db():
-    if request.method == 'POST':
-        personDetails = request.form
-        vorname = personDetails['vorname']
-        nachname = personDetails['nachname']
-        cur = conn.cursor()
-        cur.execute("INSERT INTO Person(vorname, nachname) VALUES(%s, %s)",(vorname, nachname))
-        conn.commit()
-        cur.close()
-        return 'success'
-    return render_template('test.html')
-
 @app.route('/liste', methods=['GET'])
 def test2_db():
     cur = conn.cursor()
     cur.execute('SELECT * FROM Person')
     data = cur.fetchall()
     return jsonify(data)
-    #return render_template('liste.html', output_data=data)
 
-INSTRUCTORS = [
-    {
-        'ID': '1',
-        'vorname': 'Max',
-        'nachname': 'Mustermann'
-    },
-    {
-        'ID': '2',
-        'vorname': 'Susi',
-        'nachname': 'Silber'
-    }
-]
-
-@app.route('/instructor', methods=['GET'])
-def all_instructor():
-    return jsonify({
-        'status': 'success',
-        'instructors': INSTRUCTORS
-    })
 
 if __name__ == '__main__':
     app.run(debug=True)
