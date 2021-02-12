@@ -24,7 +24,8 @@
             <td>
                 <div>
                   <button type="button">Ändern</button>
-                  <button type="button">Löschen</button>
+                  <button type="button"
+                  v-on:click="onDelete(instructor)">Löschen</button>
                 </div>
               </td>
         </tr>
@@ -78,6 +79,21 @@ export default {
       } else {
         this.addInstructor();
       }
+    },
+    removeInstructor(instructorID) {
+      const path = `http://localhost:5000/remove/${instructorID}`;
+      axios.delete(path)
+        .then(() => {
+          this.getInstructors();
+        })
+        .catch((error) => {
+        // eslint-disable-next-line
+          console.error(error);
+          this.getInstructors();
+        });
+    },
+    onDelete(instructor) {
+      this.removeInstructor(instructor[0]);
     },
   },
   created() {

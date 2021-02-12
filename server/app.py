@@ -40,6 +40,17 @@ def test():
         cur.close()
         response_object['message'] = 'Kursleiter hinzugefügt!'
     return jsonify(response_object)
+
+@app.route('/remove/<instructor_id>', methods=['DELETE'])
+def delete_instructor(instructor_id):
+    response_object = {'status': 'success'}
+    if request.method == 'DELETE':
+        cur = conn.cursor()
+        cur.execute("DELETE FROM Person WHERE ID={}".format(instructor_id))
+        conn.commit()
+        cur.close()
+        response_object['message'] = 'Kursleiter gelöscht!'
+    return jsonify(response_object)
         
 
 @app.route('/liste', methods=['GET'])
