@@ -28,14 +28,13 @@ CORS(app, resources={r'/*': {'origins': '*'}})
 
 @app.route('/add', methods=['GET', 'POST'])
 def test():
-    print("TEST")
     response_object = {'status': 'success'}
     if request.method == 'POST':
         personData = request.get_json()
         vorname = personData['vorname']
         nachname = personData['nachname']
         cur = conn.cursor()
-        cur.execute("INSERT INTO Person(vorname, nachname) VALUES(%s, %s)",(vorname, nachname))
+        cur.execute("INSERT INTO Person(vorname, nachname) VALUES({}, {})".format(vorname, nachname))
         conn.commit()
         cur.close()
         response_object['message'] = 'Kursleiter hinzugefügt!'
@@ -52,6 +51,19 @@ def delete_instructor(instructor_id):
         response_object['message'] = 'Kursleiter gelöscht!'
     return jsonify(response_object)
         
+@app.route('/edit/<instructor_id>', methods=['PUT'])
+def edit_instructor(instructor_id):
+    response_object = {'status': 'success'}
+    if request.method == 'PUT':
+        personData = request.get_json()
+        vorname = personData['vorname']
+        nachname = personData['nachname']
+        cur = conn.cursor()
+        cur.execute("UPDATE Person SET Vorname='{}', Nachname='{}' WHERE ID={}".format(vorname, nachname, instructor_id))
+        conn.commit()
+        cur.close()
+        response_object['message'] = 'Kursleiter editiert!'
+    return jsonify(response_object)
 
 @app.route('/liste', methods=['GET'])
 def test2_db():

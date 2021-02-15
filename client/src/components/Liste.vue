@@ -23,7 +23,8 @@
             <td>{{ instructor[2] }}</td>
             <td>
                 <div>
-                  <button type="button">Ändern</button>
+                  <button type="button"
+                  v-on:click="onEdit(instructor)">Ändern</button>
                   <button type="button"
                   v-on:click="onDelete(instructor)">Löschen</button>
                 </div>
@@ -94,6 +95,29 @@ export default {
     },
     onDelete(instructor) {
       this.removeInstructor(instructor[0]);
+    },
+    editInstructor(instructorID) {
+      const path = `http://localhost:5000/edit/${instructorID}`;
+      axios.put(path, {
+        vorname: this.newVorname,
+        nachname: this.newNachname,
+      })
+        .then(() => {
+          this.getInstructors();
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.error(error);
+          this.getInstructors();
+        });
+    },
+    onEdit(instructor) {
+      if (this.newVorname === '' || this.newNachname === '') {
+      // eslint-disable-next-line
+        console.error(error);
+      } else {
+        this.editInstructor(instructor[0]);
+      }
     },
   },
   created() {
