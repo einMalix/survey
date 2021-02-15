@@ -1,17 +1,19 @@
 <template>
 <div>
     <form>
+    Login <input name="login" type="text" v-model="newLogin" />
+    <br>
     Vorname <input name="vorname" type="text" v-model="newVorname" />
     <br>
     Nachname <input name="nachname" type="text" v-model="newNachname" />
     <br>
-    <button v-on:click="onSubmit()">Submit</button>
+    <button v-on:click="onSubmit()">Hinzufügen</button>
     </form>
     <br>
  <table>
     <thead>
     <tr>
-        <th>ID</th>
+        <th>Login</th>
         <th>Vorname</th>
         <th>Nachname</th>
     </tr>
@@ -43,6 +45,7 @@ export default {
   data() {
     return {
       instructors: '',
+      newLogin: '',
       newVorname: '',
       newNachname: '',
     };
@@ -62,27 +65,30 @@ export default {
     addInstructor() {
       const path = 'http://localhost:5000/add';
       axios.post(path, {
+        login: this.newLogin,
         vorname: this.newVorname,
         nachname: this.newNachname,
       })
         .then((response) => {
         // eslint-disable-next-line
           console.log(response);
-        }, (error) => {
+          this.getInstructors();
+        })
+        .catch((error) => {
         // eslint-disable-next-line
-          console.log(error);
+          console.error(error);
         });
     },
     onSubmit() {
-      if (this.newVorname === '' || this.newNachname === '') {
+      if (this.newLogin === '' || this.newVorname === '' || this.newNachname === '') {
       // eslint-disable-next-line
         console.error(error);
       } else {
         this.addInstructor();
       }
     },
-    removeInstructor(instructorID) {
-      const path = `http://localhost:5000/remove/${instructorID}`;
+    removeInstructor(instructorLogin) {
+      const path = `http://localhost:5000/remove/${instructorLogin}`;
       axios.delete(path)
         .then(() => {
           this.getInstructors();
@@ -96,9 +102,10 @@ export default {
     onDelete(instructor) {
       this.removeInstructor(instructor[0]);
     },
-    editInstructor(instructorID) {
-      const path = `http://localhost:5000/edit/${instructorID}`;
+    editInstructor(instructorLogin) {
+      const path = `http://localhost:5000/edit/${instructorLogin}`;
       axios.put(path, {
+        login: this.newLogin,
         vorname: this.newVorname,
         nachname: this.newNachname,
       })
@@ -112,12 +119,7 @@ export default {
         });
     },
     onEdit(instructor) {
-      if (this.newVorname === '' || this.newNachname === '') {
-      // eslint-disable-next-line
-        console.error(error);
-      } else {
-        this.editInstructor(instructor[0]);
-      }
+      this.editInstructor(instructor[0]);
     },
   },
   created() {
