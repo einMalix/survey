@@ -119,7 +119,12 @@ export default {
         });
     },
     onEdit(instructor) {
-      this.editInstructor(instructor[0]);
+      if (this.newLogin === '' && this.newVorname === '' && this.newNachname === '') {
+      // eslint-disable-next-line
+        console.error(error);
+      } else {
+        this.editInstructor(instructor[0]);
+      }
     },
   },
   created() {
