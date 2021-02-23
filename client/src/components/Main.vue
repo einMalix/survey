@@ -6,9 +6,11 @@
     <div class="login">
         <login></login>
         </div>
-        <navBar @change_view="onClickHomeAdmin"/>
-    <div class="liste" v-if='HomeAdminIsClicked'>
-        <liste></liste>
+    <div>
+        <navBar @toggleViewHomeKursleiter="onClickHomeKursleiter"
+        @toggleViewHomeAdmin="onClickHomeAdmin"/>
+        <course v-if="HomeKursleiterIsClicked"></course>
+        <liste v-if="HomeAdminIsClicked"></liste>
     </div>
 </div>
 </template>
@@ -17,6 +19,7 @@
 import Login from './Login.vue';
 import NavBar from './NavBar.vue';
 import Liste from './Liste.vue';
+import Course from './Course.vue';
 
 export default {
   name: 'Main',
@@ -24,15 +27,22 @@ export default {
     login: Login,
     navBar: NavBar,
     liste: Liste,
+    course: Course,
   },
   data() {
     return {
       HomeAdminIsClicked: false,
+      HomeKursleiterIsClicked: false,
     };
   },
   methods: {
     onClickHomeAdmin(value) {
+      this.HomeKursleiterIsClicked = false;
       this.HomeAdminIsClicked = value;
+    },
+    onClickHomeKursleiter(value) {
+      this.HomeAdminIsClicked = false;
+      this.HomeKursleiterIsClicked = value;
     },
 
   },

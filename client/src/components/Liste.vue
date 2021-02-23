@@ -3,10 +3,24 @@
     <form>
     Login <input name="login" type="text" v-model="newLogin" />
     <br>
+    Passwort <input name="passwort" type="password" v-model="newPasswort" />
+    <br>
     Vorname <input name="vorname" type="text" v-model="newVorname" />
     <br>
     Nachname <input name="nachname" type="text" v-model="newNachname" />
     <br>
+    <br>
+    <fieldset>
+    <label>
+        <input type="radio" name="rolle" value="Administrator" v-model="newRolle" />
+        Administrator
+    </label>
+    <br>
+    <label>
+        <input type="radio" name="rolle" value="Kursleiter" v-model="newRolle" />
+        Kursleiter
+    </label>
+    </fieldset>
     <button v-on:click="onSubmit()">Hinzufügen</button>
     </form>
     <br>
@@ -16,19 +30,23 @@
         <th>Login</th>
         <th>Vorname</th>
         <th>Nachname</th>
+        <th>Rolle</th>
+        <th>Passwort</th>
     </tr>
     </thead>
     <tbody>
-        <tr v-for="instructor in instructors" :key="instructor">
-            <td>{{ instructor[0] }}</td>
-            <td>{{ instructor[1] }}</td>
-            <td>{{ instructor[2] }}</td>
+        <tr v-for="user in users" :key="user">
+            <td>{{ user[0] }}</td>
+            <td>{{ user[1] }}</td>
+            <td>{{ user[2] }}</td>
+            <td>{{ user[3] }}</td>
+            <td>{{ user[4] }}</td>
             <td>
                 <div>
                   <button type="button"
-                  v-on:click="onEdit(instructor)">Ändern</button>
+                  v-on:click="onEdit(user)">Ändern</button>
                   <button type="button"
-                  v-on:click="onDelete(instructor)">Löschen</button>
+                  v-on:click="onDelete(user)">Löschen</button>
                 </div>
               </td>
         </tr>
@@ -44,35 +62,39 @@ export default {
   name: 'Liste',
   data() {
     return {
-      instructors: '',
+      users: '',
       newLogin: '',
       newVorname: '',
       newNachname: '',
+      newRolle: '',
+      newPasswort: '',
     };
   },
   methods: {
-    getInstructors() {
+    getUsers() {
       const path = 'http://localhost:5000/liste';
       axios.get(path)
         .then((res) => {
-          this.instructors = res.data;
+          this.users = res.data;
         })
         .catch((error) => {
         // eslint-disable-next-line
           console.error(error);
         });
     },
-    addInstructor() {
+    addUser() {
       const path = 'http://localhost:5000/add';
       axios.post(path, {
         login: this.newLogin,
         vorname: this.newVorname,
         nachname: this.newNachname,
+        rolle: this.newRolle,
+        passwort: this.newPasswort,
       })
         .then((response) => {
         // eslint-disable-next-line
           console.log(response);
-          this.getInstructors();
+          this.getUsers();
         })
         .catch((error) => {
         // eslint-disable-next-line
@@ -80,55 +102,57 @@ export default {
         });
     },
     onSubmit() {
-      if (this.newLogin === '' || this.newVorname === '' || this.newNachname === '') {
+      if (this.newLogin === '' || this.newVorname === '' || this.newNachname === '' || this.newRolle === '' || this.newPasswort === '') {
       // eslint-disable-next-line
         console.error(error);
       } else {
-        this.addInstructor();
+        this.addUser();
       }
     },
-    removeInstructor(instructorLogin) {
-      const path = `http://localhost:5000/remove/${instructorLogin}`;
+    removeUser(userLogin) {
+      const path = `http://localhost:5000/remove/${userLogin}`;
       axios.delete(path)
         .then(() => {
-          this.getInstructors();
+          this.getUsers();
         })
         .catch((error) => {
         // eslint-disable-next-line
           console.error(error);
-          this.getInstructors();
+          this.getUsers();
         });
     },
-    onDelete(instructor) {
-      this.removeInstructor(instructor[0]);
+    onDelete(user) {
+      this.removeUser(user[0]);
     },
-    editInstructor(instructorLogin) {
-      const path = `http://localhost:5000/edit/${instructorLogin}`;
+    editUser(userLogin) {
+      const path = `http://localhost:5000/edit/${userLogin}`;
       axios.put(path, {
         login: this.newLogin,
         vorname: this.newVorname,
         nachname: this.newNachname,
+        rolle: this.newRolle,
+        passwort: this.newPasswort,
       })
         .then(() => {
-          this.getInstructors();
+          this.getUsers();
         })
         .catch((error) => {
           // eslint-disable-next-line
           console.error(error);
-          this.getInstructors();
+          this.getUsers();
         });
     },
-    onEdit(instructor) {
-      if (this.newLogin === '' && this.newVorname === '' && this.newNachname === '') {
+    onEdit(user) {
+      if (this.newLogin === '' && this.newVorname === '' && this.newNachname === '' && this.newRolle === '' && this.newPasswort === '') {
       // eslint-disable-next-line
         console.error(error);
       } else {
-        this.editInstructor(instructor[0]);
+        this.editUser(user[0]);
       }
     },
   },
   created() {
-    this.getInstructors();
+    this.getUsers();
   },
 };
 </script>

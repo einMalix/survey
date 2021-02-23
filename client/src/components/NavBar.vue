@@ -6,7 +6,7 @@
         <div class="HomeAdmin" @click="onClickHomeAdmin()">
             <p>Home Admin</p>
         </div>
-      <div class="HomeKursleiter">
+      <div class="HomeKursleiter" @click="onClickHomeKursleiter()">
           <p>Home Kursleiter</p>
       </div>
       <div class="KursleiterFragen">
@@ -30,8 +30,14 @@ export default {
   },
   methods: {
     onClickHomeAdmin() {
+      this.HomeKursleiterIsClicked = false;
       this.HomeAdminIsClicked = !this.HomeAdminIsClicked;
-      this.$emit('change_view', this.HomeAdminIsClicked);
+      this.$emit('toggleViewHomeAdmin', this.HomeAdminIsClicked);
+    },
+    onClickHomeKursleiter() {
+      this.HomeAdminIsClicked = false;
+      this.HomeKursleiterIsClicked = !this.HomeKursleiterIsClicked;
+      this.$emit('toggleViewHomeKursleiter', this.HomeKursleiterIsClicked);
     },
 
   },
