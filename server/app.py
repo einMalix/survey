@@ -1,10 +1,11 @@
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, session
 from flask_cors import CORS
-import mariadb, sys, yaml
+import mariadb, sys, yaml, json
 from hashlib import sha256
 
 app = Flask(__name__)
 app.config.from_object(__name__)
+app.secret_key="alsjd374t82troksan87rt29efh983ra"
 
 #Connect to MariaDB Platform
 '''db = yaml.load(open('db.yaml'))
@@ -26,6 +27,13 @@ except mariadb.Error as e:
 
 
 CORS(app, resources={r'/*': {'origins': '*'}})
+
+class User:
+    def __init__(self, login, vorname, nachname, rolle):
+        self.login = login
+        self.vorname = vorname
+        self.nachname = nachname
+        self.rolle = rolle
 
 @app.route('/add', methods=['GET', 'POST'])
 def add_user():
@@ -93,6 +101,36 @@ def list_users():
     cur.execute('SELECT Login, Vorname, Nachname, Rolle FROM User')
     data = cur.fetchall()
     return jsonify(data)
+
+@app.route('/login', methods=['POST', 'GET'])
+def login_user():
+    response_object = {'status': 'success'}
+    if request.method == 'POST':
+        personData = request.get_json()
+        login = personData['login']
+        password = personData['password']
+        h = sha256()
+        h.update(('%s' % (password)).encode('utf-8'))
+        h_password = h.hexdigest()
+        cur = conn.cursor()
+        cur.execute("SELECT Passwort FROM User WHERE Login='{}'".format(login))
+        user_pw = cur.fetchall()
+        if (h_password == user_pw[0][0]):
+           print("Login erfolgreich!")
+           user(login)
+           response_object['message'] = 'Login erfolgreich!'
+        return jsonify(response_object)
+
+@app.route('/user/<login>', methods=['GET'])
+def user(login):
+        cur = conn.cursor()
+        cur.execute("SELECT Login, Vorname, Nachname, Rolle FROM User WHERE Login='{}'".format(login))
+        userData = cur.fetchall()
+        user = User(userData[0][0], userData[0][1], userData[0][2], userData[0][3])
+        session["user"] = json.dumps(user.__dict__)
+        print(session["user"])
+        return jsonify(session["user"])
+
 
 
 if __name__ == '__main__':

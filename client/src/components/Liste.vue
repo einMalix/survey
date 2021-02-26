@@ -58,6 +58,8 @@
 <script>
 import axios from 'axios';
 
+const crypto = require('crypto');
+
 export default {
   name: 'Liste',
   data() {
@@ -84,12 +86,13 @@ export default {
     },
     addUser() {
       const path = 'http://localhost:5000/add';
+      const hashPW = crypto.createHash('sha1').update(this.newPasswort).digest('hex');
       axios.post(path, {
         login: this.newLogin,
         vorname: this.newVorname,
         nachname: this.newNachname,
         rolle: this.newRolle,
-        passwort: this.newPasswort,
+        passwort: hashPW,
       })
         .then((response) => {
         // eslint-disable-next-line
@@ -126,12 +129,13 @@ export default {
     },
     editUser(userLogin) {
       const path = `http://localhost:5000/edit/${userLogin}`;
+      const hashPW = crypto.createHash('sha1').update(this.newPasswort).digest('hex');
       axios.put(path, {
         login: this.newLogin,
         vorname: this.newVorname,
         nachname: this.newNachname,
         rolle: this.newRolle,
-        passwort: this.newPasswort,
+        passwort: hashPW,
       })
         .then(() => {
           this.getUsers();

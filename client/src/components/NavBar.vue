@@ -3,13 +3,16 @@
 <div id="app">
   <div class="navbar">
     <div class="colum">
-        <div class="HomeAdmin" @click="onClickHomeAdmin()">
+        <div v-if="userData.rolle == 'Administrator'"
+        class="HomeAdmin" @click="onClickHomeAdmin()">
             <p>Home Admin</p>
         </div>
-      <div class="HomeKursleiter" @click="onClickHomeKursleiter()">
+      <div v-if="userData.rolle == 'Kursleiter'"
+      class="HomeKursleiter" @click="onClickHomeKursleiter()">
           <p>Home Kursleiter</p>
       </div>
-      <div class="KursleiterFragen">
+      <div v-if="userData.rolle == 'Kursleiter'"
+      class="KursleiterFragen">
           <p>Kursleiter Fragen</p>
       </div>
     </div>
@@ -21,6 +24,7 @@
 <script>
 export default {
   name: 'NavBar',
+  props: ['userData'],
   data() {
     return {
       HomeAdminIsClicked: false,

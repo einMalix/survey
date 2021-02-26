@@ -10,21 +10,29 @@
     <div v-show="showLoginForm">
         Login <input name="login" type="text" v-model="Login" />
         <br>
-        Passwort <input name="password" type="text" v-model="Password" />
+        Passwort <input name="password" type="password" v-model="Password" />
         <br>
-        <button>Einloggen</button>
+        <button v-on:click="onLogin">Einloggen</button>
         <button v-on:click="onCancel">Abbrechen</button>
     </div>
 </div>
 </template>
 
 <script>
+import axios from 'axios';
+
+const crypto = require('crypto');
+
 export default {
   name: 'Login',
   data() {
     return {
       showLoginForm: false,
       hideLoginButton: true,
+      Login: '',
+      Password: '',
+      loginOK: false,
+      userData: '',
 
     };
   },
@@ -32,6 +40,38 @@ export default {
     onCancel() {
       this.showLoginForm = !this.showLoginForm;
       this.hideLoginButton = !this.hideLoginButton;
+    },
+    onLogin() {
+      const path = 'http://localhost:5000/login';
+      const hashPW = crypto.createHash('sha1').update(this.Password).digest('hex');
+      axios.post(path, {
+        login: this.Login,
+        password: hashPW,
+      })
+        .then((response) => {
+        // eslint-disable-next-line
+          console.log(response);
+          this.loginOK = true;
+          this.getUserData(this.Login);
+          this.$emit('toggleViewUser', this.loginOK);
+          this.onCancel();
+        })
+        .catch((error) => {
+        // eslint-disable-next-line
+          console.error(error);
+        });
+    },
+    getUserData(login) {
+      const path = `http://localhost:5000/user/${login}`;
+      axios.get(path)
+        .then((res) => {
+          this.userData = res.data;
+          this.$emit('toggleUserData', this.userData);
+        })
+        .catch((error) => {
+        // eslint-disable-next-line
+          console.error(error);
+        });
     },
 
   },
