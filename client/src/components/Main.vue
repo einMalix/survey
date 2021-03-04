@@ -1,22 +1,17 @@
 <template>
 <div>
-    <div v-if="loginOK" class="navBar">
-        <navBar v-bind:userData="userData" @toggleViewHomeKursleiter="onClickHomeKursleiter"
+    <div class="navBar">
+        <navBar v-bind:userData="userData" v-bind:loginOK="loginOK"
+        @toggleViewHomeKursleiter="onClickHomeKursleiter"
         @toggleViewHomeAdmin="onClickHomeAdmin"></navBar>
     </div>
     <div class="login">
-        <login @toggleViewUser="onLogin" @toggleUserData="onGetUserData"></login>
+        <login @updateUserLogin="onLogin" @toggleUserData="onGetUserData"></login>
         </div>
     <div>
-        <course v-if="HomeKursleiterIsClicked"></course>
-        <liste v-if="HomeAdminIsClicked"></liste>
+        <course v-if="loginOK && HomeKursleiterIsClicked" v-bind:userData="userData"></course>
+        <liste v-if="loginOK && HomeAdminIsClicked"></liste>
     </div>
-    <br><br><br><br><br><br>
-    <div class="user">
-        <user v-bind:loginOK="loginOK" v-bind:userData="userData" v-if="loginOK"></user>
-        </div>
-
-      <p>{{userData}}</p>
 </div>
 </template>
 
@@ -25,7 +20,6 @@ import Login from './Login.vue';
 import NavBar from './NavBar.vue';
 import Liste from './Liste.vue';
 import Course from './Course.vue';
-import User from './User.vue';
 
 export default {
   name: 'Main',
@@ -34,7 +28,6 @@ export default {
     navBar: NavBar,
     liste: Liste,
     course: Course,
-    user: User,
   },
   data() {
     return {
@@ -55,9 +48,11 @@ export default {
     },
     onLogin(value) {
       this.loginOK = value;
+      this.HomeAdminIsClicked = false;
+      this.HomeKursleiterIsClicked = false;
     },
     onGetUserData(value) {
-      this.userData = JSON.parse(value);
+      this.userData = value;
     },
   },
   created() {

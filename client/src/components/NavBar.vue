@@ -3,15 +3,15 @@
 <div id="app">
   <div class="navbar">
     <div class="colum">
-        <div v-if="userData.rolle == 'Administrator'"
+        <div v-if="userData.rolle == 'Administrator' && loginOK == true"
         class="HomeAdmin" @click="onClickHomeAdmin()">
             <p>Home Admin</p>
         </div>
-      <div v-if="userData.rolle == 'Kursleiter'"
+      <div v-if="userData.rolle == 'Kursleiter' && loginOK == true"
       class="HomeKursleiter" @click="onClickHomeKursleiter()">
           <p>Home Kursleiter</p>
       </div>
-      <div v-if="userData.rolle == 'Kursleiter'"
+      <div v-if="userData.rolle == 'Kursleiter' && loginOK == true"
       class="KursleiterFragen">
           <p>Kursleiter Fragen</p>
       </div>
@@ -24,7 +24,7 @@
 <script>
 export default {
   name: 'NavBar',
-  props: ['userData'],
+  props: ['userData', 'loginOK'],
   data() {
     return {
       HomeAdminIsClicked: false,
@@ -43,7 +43,6 @@ export default {
       this.HomeKursleiterIsClicked = !this.HomeKursleiterIsClicked;
       this.$emit('toggleViewHomeKursleiter', this.HomeKursleiterIsClicked);
     },
-
   },
   created() {
   },

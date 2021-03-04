@@ -21,7 +21,7 @@
         Kursleiter
     </label>
     </fieldset>
-    <button v-on:click="onSubmit()">Hinzufügen</button>
+    <button v-on:click.prevent="onSubmit()">Hinzufügen</button>
     </form>
     <br>
  <table>
