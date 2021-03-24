@@ -12,6 +12,10 @@
           <p>Home Kursleiter</p>
       </div>
       <div v-if="userData.rolle == 'Kursleiter' && loginOK == true"
+      class="UmfrageKursleiter" @click="onClickUmfrageKursleiter()">
+        <p>Umfrage erstellen</p>
+        </div>
+      <div v-if="userData.rolle == 'Kursleiter' && loginOK == true"
       class="KursleiterFragen">
           <p>Kursleiter Fragen</p>
       </div>
@@ -30,18 +34,27 @@ export default {
       HomeAdminIsClicked: false,
       HomeKursleiterIsClicked: false,
       KursleiterFragenIsClicked: false,
+      UmfrageKursleiterIsClicked: false,
+      FrageKursleiterIsClicked: false,
     };
   },
   methods: {
     onClickHomeAdmin() {
-      this.HomeKursleiterIsClicked = false;
       this.HomeAdminIsClicked = !this.HomeAdminIsClicked;
       this.$emit('toggleViewHomeAdmin', this.HomeAdminIsClicked);
     },
     onClickHomeKursleiter() {
-      this.HomeAdminIsClicked = false;
+      if (!this.HomeKursleiterIsClicked) {
+        this.FrageKursleiterIsClicked = false;
+        this.UmfrageKursleiterIsClicked = false;
+      }
       this.HomeKursleiterIsClicked = !this.HomeKursleiterIsClicked;
       this.$emit('toggleViewHomeKursleiter', this.HomeKursleiterIsClicked);
+    },
+    onClickUmfrageKursleiter() {
+      this.HomeKursleiterIsClicked = false;
+      this.UmfrageKursleiterIsClicked = !this.UmfrageKursleiterIsClicked;
+      this.$emit('toggleViewUmfrageKursleiter', this.UmfrageKursleiterIsClicked);
     },
   },
   created() {
@@ -83,6 +96,13 @@ export default {
   cursor: pointer;
 }
 .KursleiterFragen{
+  height: 34px;
+  margin-left: 20px;
+  display: flex;
+  color: white;
+  cursor: pointer;
+}
+.UmfrageKursleiter{
   height: 34px;
   margin-left: 20px;
   display: flex;

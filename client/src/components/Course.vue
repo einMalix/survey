@@ -69,10 +69,9 @@ import axios from 'axios';
 
 export default {
   name: 'Course',
-  props: ['userData'],
+  props: ['userData', 'courses'],
   data() {
     return {
-      courses: '',
       showAddCourseForm: false,
       hideAddCourseButton: false,
       AddTitle: '',
@@ -102,17 +101,6 @@ export default {
     },
   },
   methods: {
-    getCourses() {
-      const path = `http://localhost:5000/course/list/${this.userLogin}`;
-      axios.get(path)
-        .then((res) => {
-          this.courses = res.data;
-        })
-        .catch((error) => {
-        // eslint-disable-next-line
-          console.error(error);
-        });
-    },
     onClickButtonAddCourse() {
       this.AddTitle = '';
       this.AddDescription = '';
@@ -145,7 +133,7 @@ export default {
         .then((response) => {
         // eslint-disable-next-line
           console.log(response);
-          this.getCourses();
+          this.$emit('getCourses');
         })
         .catch((error) => {
         // eslint-disable-next-line
@@ -176,7 +164,7 @@ export default {
       const path = `http://localhost:5000/course/delete/${courseID}`;
       axios.delete(path)
         .then(() => {
-          this.getCourses();
+          this.$emit('getCourses');
         })
         .catch((error) => {
         // eslint-disable-next-line
@@ -210,7 +198,7 @@ export default {
           enddate: this.EditDateEnd,
         })
           .then(() => {
-            this.getCourses();
+            this.$emit('getCourses');
             this.EditTitle = '';
             this.EditDescription = '';
             this.EditDateStart = '';
@@ -226,7 +214,6 @@ export default {
     },
   },
   created() {
-    this.getCourses();
   },
 };
 </script>

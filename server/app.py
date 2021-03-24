@@ -20,7 +20,7 @@ try:
         user="admin",
         password="Password123!",
         host="localhost",
-        database="test_db"
+        database="SurveyDB"
     )
 except mariadb.Error as e:
     print(f"Error connecting to MariaDB Platform: {e}")
@@ -50,7 +50,7 @@ def add_user():
         h.update(('%s' % (password)).encode('utf-8'))
         h_password = h.hexdigest()
         cur = conn.cursor()
-        cur.execute("INSERT INTO User(login, vorname, nachname, rolle, passwort) VALUES('{}', '{}', '{}', '{}', '{}')".format(login, vorname, nachname, rolle, h_password))
+        cur.execute("INSERT INTO Users(UserLogin, UserFirstName, UserLastName, UserRole, UserPassword) VALUES('{}', '{}', '{}', '{}', '{}')".format(login, vorname, nachname, rolle, h_password))
         conn.commit()
         cur.close()
         response_object['message'] = 'User hinzugefügt!'
@@ -61,7 +61,7 @@ def delete_user(user_login):
     response_object = {'status': 'success'}
     if request.method == 'DELETE':
         cur = conn.cursor()
-        cur.execute("DELETE FROM User WHERE Login='{}'".format(user_login))
+        cur.execute("DELETE FROM Users WHERE UserLogin='{}'".format(user_login))
         conn.commit()
         cur.close()
         response_object['message'] = 'User gelöscht!'
@@ -79,18 +79,18 @@ def edit_user(user_login):
         password = personData['passwort']
         cur = conn.cursor()
         if (login):
-            cur.execute("UPDATE User SET Login='{}' WHERE Login='{}'".format(login, user_login))
+            cur.execute("UPDATE Users SET UserLogin='{}' WHERE UserLogin='{}'".format(login, user_login))
         if (vorname):
-            cur.execute("UPDATE User SET Vorname='{}' WHERE Login='{}'".format(vorname, user_login))
+            cur.execute("UPDATE Users SET UserFirstName='{}' WHERE UserLogin='{}'".format(vorname, user_login))
         if (nachname):
-            cur.execute("UPDATE User SET Nachname='{}' WHERE Login='{}'".format(nachname, user_login))
+            cur.execute("UPDATE Users SET UserLastName='{}' WHERE UserLogin='{}'".format(nachname, user_login))
         if (rolle):
-            cur.execute("UPDATE User SET Rolle='{}' WHERE Login='{}'".format(rolle, user_login))
+            cur.execute("UPDATE Users SET UserRole='{}' WHERE UserLogin='{}'".format(rolle, user_login))
         if (password):
             h = sha256()
             h.update(('%s' % (password)).encode('utf-8'))
             h_password = h.hexdigest()
-            cur.execute("UPDATE User SET Passwort='{}' WHERE Login='{}'".format(h_password, user_login))
+            cur.execute("UPDATE Users SET UserPassword='{}' WHERE UserLogin='{}'".format(h_password, user_login))
         conn.commit()
         cur.close()
         response_object['message'] = 'User editiert!'
@@ -109,13 +109,13 @@ def change_password(user_login):
             h.update(('%s' % (old_password)).encode('utf-8'))
             h_old_password = h.hexdigest()
             cur = conn.cursor()
-            cur.execute("SELECT Passwort FROM User WHERE Login='{}'".format(user_login))
+            cur.execute("SELECT UserPassword FROM Users WHERE UserLogin='{}'".format(user_login))
             old_password_data = cur.fetchall()
             if (old_password_data[0][0] == h_old_password):
                 h = sha256()
                 h.update(('%s' % (new_password_1)).encode('utf-8'))
                 h_new_password = h.hexdigest()
-                cur.execute("UPDATE User SET Passwort='{}' WHERE Login='{}'".format(h_new_password, user_login))
+                cur.execute("UPDATE Users SET UserPassword='{}' WHERE UserLogin='{}'".format(h_new_password, user_login))
                 conn.commit()
                 response_object['message'] = "Passwort geändert!"
                 cur.close()
@@ -134,7 +134,7 @@ def change_password(user_login):
 @app.route('/liste', methods=['GET'])
 def list_users():
     cur = conn.cursor()
-    cur.execute('SELECT Login, Vorname, Nachname, Rolle FROM User')
+    cur.execute('SELECT UserLogin, UserFirstName, UserLastName, UserRole FROM Users')
     data = cur.fetchall()
     return jsonify(data)
 
@@ -149,7 +149,7 @@ def login_user():
         h.update(('%s' % (password)).encode('utf-8'))
         h_password = h.hexdigest()
         cur = conn.cursor()
-        cur.execute("SELECT Passwort FROM User WHERE Login='{}'".format(login))
+        cur.execute("SELECT UserPassword FROM Users WHERE UserLogin='{}'".format(login))
         user_pw = cur.fetchall()
         if (h_password == user_pw[0][0]):
            user(login)
@@ -163,7 +163,7 @@ def login_user():
 @app.route('/user/<login>', methods=['GET'])
 def user(login):
         cur = conn.cursor()
-        cur.execute("SELECT Login, Vorname, Nachname, Rolle FROM User WHERE Login='{}'".format(login))
+        cur.execute("SELECT UserLogin, UserFirstName, UserLastName, UserRole FROM Users WHERE UserLogin='{}'".format(login))
         userData = cur.fetchall()
         user = User(userData[0][0], userData[0][1], userData[0][2], userData[0][3])
         session["user"] = json.dumps(user.__dict__)
@@ -186,7 +186,7 @@ def add_course():
         enddate = courseData['enddate']
         instructor = courseData['instructor']
         cur = conn.cursor()
-        cur.execute("INSERT INTO Course(CourseTitle, CourseDescription, CourseStart, CourseEnd, CourseInstructor) VALUES('{}', '{}', '{}', '{}', '{}')".format(title, description, startdate, enddate, instructor))
+        cur.execute("INSERT INTO Course(CourseTitle, CourseDescription, CourseStart, CourseEnd, CourseUser) VALUES('{}', '{}', '{}', '{}', '{}')".format(title, description, startdate, enddate, instructor))
         conn.commit()
         cur.close()
         response_object['message'] = 'Kurs hinzugefügt!'
@@ -195,8 +195,9 @@ def add_course():
 @app.route('/course/list/<user_login>', methods=['GET'])
 def list_courses(user_login):
     cur = conn.cursor()
-    cur.execute("SELECT CourseID, CourseTitle, CourseDescription, CourseStart, CourseEnd FROM Course WHERE CourseInstructor='{}'".format(user_login))
+    cur.execute("SELECT CourseID, CourseTitle, CourseDescription, CourseStart, CourseEnd FROM Course WHERE CourseUser='{}'".format(user_login))
     data = cur.fetchall()
+    cur.close()
     return jsonify(data)
 
 @app.route('/course/delete/<course_id>', methods=['DELETE'])
@@ -231,6 +232,38 @@ def edit_course(course_id):
         conn.commit()
         cur.close()
         response_object['message'] = 'Kurs editiert!'
+    return jsonify(response_object)
+
+@app.route('/questions/list', methods=['GET'])
+def list_questions():
+    cur = conn.cursor()
+    cur.execute('SELECT QuestionID, QuestionText, QuestionType FROM Question')
+    data = cur.fetchall()
+    return jsonify(data)
+
+@app.route('/survey/add', methods=['POST'])
+def add_survey():
+    response_object = {'status': 'success'}
+    if request.method == 'POST':
+        surveyData = request.get_json()
+        title = surveyData['title']
+        description = surveyData['description']
+        password = surveyData['password']
+        courseID = surveyData['courseID']
+        questionList = surveyData['questionList']
+        h = sha256()
+        h.update(('%s' % (password)).encode('utf-8'))
+        h_password = h.hexdigest()
+        cur = conn.cursor()
+        cur.execute("START TRANSACTION;")
+        cur.execute("INSERT INTO Survey(SurveyTitle, SurveyDescription, SurveyPassword, CourseID) VALUES('{}', '{}', '{}', '{}');".format(title, description, h_password, courseID))
+        cur.execute("SELECT @SurveyID:=SurveyID FROM Survey ORDER BY SurveyID DESC LIMIT 1;")
+        for questionID in questionList:
+            cur.execute("INSERT INTO Survey_Question(SurveyID, QuestionID) VALUES(@SurveyID, '{}');".format(questionID))
+        cur.execute("COMMIT;")
+        conn.commit()
+        cur.close()
+        response_object['message'] = 'Kurs hinzugefügt!'
     return jsonify(response_object)
 
 
