@@ -10,9 +10,11 @@
         <login @updateUserLogin="onLogin" @toggleUserData="onGetUserData"></login>
         </div>
     <div>
+        <survey v-if="loginOK == false" v-bind:courses="courseDataAll"
+        v-bind:surveys="surveyDataAll"></survey>
         <course v-if="loginOK && HomeKursleiterIsClicked"
-        v-bind:userData="userData" v-bind:courses="courseData"
-        @getCourses="getCourses"></course>
+        v-bind:userData="userData" v-bind:courses="courseData" v-bind:surveys="surveyData"
+        @getCourses="getCourses" @getSurveys="getSurveys"></course>
         <liste v-if="loginOK && HomeAdminIsClicked"></liste>
         <addsurvey v-if="loginOK && UmfrageKursleiterIsClicked"
         v-bind:courses="courseData"></addsurvey>
@@ -28,6 +30,7 @@ import NavBar from './NavBar.vue';
 import Liste from './Liste.vue';
 import Course from './Course.vue';
 import AddSurvey from './AddSurvey.vue';
+import Survey from './Survey.vue';
 
 export default {
   name: 'Main',
@@ -37,6 +40,7 @@ export default {
     liste: Liste,
     course: Course,
     addsurvey: AddSurvey,
+    survey: Survey,
   },
   data() {
     return {
@@ -46,6 +50,9 @@ export default {
       loginOK: false,
       userData: '',
       courseData: '',
+      surveyData: '',
+      courseDataAll: '',
+      surveyDataAll: '',
     };
   },
   methods: {
@@ -70,14 +77,46 @@ export default {
       this.userData = value;
       this.getCourses();
     },
-    getCourseData(value) {
-      this.courseData = value;
-    },
     getCourses() {
       const path = `http://localhost:5000/course/list/${this.userData.login}`;
       axios.get(path)
         .then((res) => {
           this.courseData = res.data;
+          this.getSurveys();
+        })
+        .catch((error) => {
+        // eslint-disable-next-line
+          console.error(error);
+        });
+    },
+    getCoursesAll() {
+      const path = 'http://localhost:5000/course/list/all';
+      axios.get(path)
+        .then((res) => {
+          this.courseDataAll = res.data;
+          this.getSurveysAll();
+        })
+        .catch((error) => {
+        // eslint-disable-next-line
+          console.error(error);
+        });
+    },
+    getSurveys() {
+      const path = `http://localhost:5000/survey/list/${this.userData.login}`;
+      axios.get(path)
+        .then((res) => {
+          this.surveyData = res.data;
+        })
+        .catch((error) => {
+        // eslint-disable-next-line
+          console.error(error);
+        });
+    },
+    getSurveysAll() {
+      const path = 'http://localhost:5000/survey/list/all';
+      axios.get(path)
+        .then((res) => {
+          this.surveyDataAll = res.data;
         })
         .catch((error) => {
         // eslint-disable-next-line
@@ -86,6 +125,7 @@ export default {
     },
   },
   created() {
+    this.getCoursesAll();
   },
 };
 </script>

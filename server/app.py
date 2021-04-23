@@ -78,6 +78,7 @@ def edit_user(user_login):
         rolle = personData['rolle']
         password = personData['passwort']
         cur = conn.cursor()
+        cur.execute("START TRANSACTION;")
         if (login):
             cur.execute("UPDATE Users SET UserLogin='{}' WHERE UserLogin='{}'".format(login, user_login))
         if (vorname):
@@ -91,6 +92,7 @@ def edit_user(user_login):
             h.update(('%s' % (password)).encode('utf-8'))
             h_password = h.hexdigest()
             cur.execute("UPDATE Users SET UserPassword='{}' WHERE UserLogin='{}'".format(h_password, user_login))
+        cur.execute("COMMIT;")
         conn.commit()
         cur.close()
         response_object['message'] = 'User editiert!'
@@ -109,6 +111,7 @@ def change_password(user_login):
             h.update(('%s' % (old_password)).encode('utf-8'))
             h_old_password = h.hexdigest()
             cur = conn.cursor()
+            cur.execute("START TRANSACTION;")
             cur.execute("SELECT UserPassword FROM Users WHERE UserLogin='{}'".format(user_login))
             old_password_data = cur.fetchall()
             if (old_password_data[0][0] == h_old_password):
@@ -116,6 +119,7 @@ def change_password(user_login):
                 h.update(('%s' % (new_password_1)).encode('utf-8'))
                 h_new_password = h.hexdigest()
                 cur.execute("UPDATE Users SET UserPassword='{}' WHERE UserLogin='{}'".format(h_new_password, user_login))
+                cur.execute("COMMIT;")
                 conn.commit()
                 response_object['message'] = "Passwort geändert!"
                 cur.close()
@@ -136,6 +140,7 @@ def list_users():
     cur = conn.cursor()
     cur.execute('SELECT UserLogin, UserFirstName, UserLastName, UserRole FROM Users')
     data = cur.fetchall()
+    cur.close()
     return jsonify(data)
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -151,6 +156,7 @@ def login_user():
         cur = conn.cursor()
         cur.execute("SELECT UserPassword FROM Users WHERE UserLogin='{}'".format(login))
         user_pw = cur.fetchall()
+        cur.close()
         if (h_password == user_pw[0][0]):
            user(login)
            response_object['message'] = 'Login erfolgreich!'
@@ -165,6 +171,7 @@ def user(login):
         cur = conn.cursor()
         cur.execute("SELECT UserLogin, UserFirstName, UserLastName, UserRole FROM Users WHERE UserLogin='{}'".format(login))
         userData = cur.fetchall()
+        cur.close()
         user = User(userData[0][0], userData[0][1], userData[0][2], userData[0][3])
         session["user"] = json.dumps(user.__dict__)
         return jsonify(session["user"])
@@ -200,6 +207,14 @@ def list_courses(user_login):
     cur.close()
     return jsonify(data)
 
+@app.route('/course/list/all', methods=['GET'])
+def list_all_courses():
+    cur = conn.cursor()
+    cur.execute("SELECT CourseID, CourseTitle, CourseDescription, CourseStart, CourseEnd FROM Course")
+    data = cur.fetchall()
+    cur.close()
+    return jsonify(data)
+
 @app.route('/course/delete/<course_id>', methods=['DELETE'])
 def delete_course(course_id):
     response_object = {'status': 'success'}
@@ -221,6 +236,7 @@ def edit_course(course_id):
         startdate = courseData['startdate']
         enddate = courseData['enddate']
         cur = conn.cursor()
+        cur.execute("START TRANSACTION;")
         if (title):
             cur.execute("UPDATE Course SET CourseTitle='{}' WHERE CourseID='{}'".format(title, course_id))
         if (description):
@@ -229,6 +245,7 @@ def edit_course(course_id):
             cur.execute("UPDATE Course SET CourseStart='{}' WHERE CourseID='{}'".format(startdate, course_id))
         if (enddate):
             cur.execute("UPDATE Course SET CourseEnd='{}' WHERE CourseID='{}'".format(enddate, course_id))
+        cur.execute("COMMIT;")
         conn.commit()
         cur.close()
         response_object['message'] = 'Kurs editiert!'
@@ -239,6 +256,7 @@ def list_questions():
     cur = conn.cursor()
     cur.execute('SELECT QuestionID, QuestionText, QuestionType FROM Question')
     data = cur.fetchall()
+    cur.close()
     return jsonify(data)
 
 @app.route('/survey/add', methods=['POST'])
@@ -266,6 +284,114 @@ def add_survey():
         response_object['message'] = 'Kurs hinzugefügt!'
     return jsonify(response_object)
 
+@app.route('/survey/list/<user_login>', methods=['GET'])
+def list_surveys(user_login):
+    cur = conn.cursor()
+    cur.execute("SELECT SurveyID, SurveyTitle, SurveyDescription, Survey.CourseID FROM Survey INNER JOIN Course ON Survey.CourseID = Course.CourseID WHERE Course.CourseUser='{}'".format(user_login))
+    data = cur.fetchall()
+    cur.close()
+    return jsonify(data)
+
+@app.route('/survey/list/all', methods=['GET'])
+def list_all_surveys():
+    cur = conn.cursor()
+    cur.execute("SELECT SurveyID, SurveyTitle, SurveyDescription, Survey.CourseID FROM Survey INNER JOIN Course ON Survey.CourseID = Course.CourseID")
+    data = cur.fetchall()
+    cur.close()
+    return jsonify(data)
+
+@app.route('/survey/delete/<survey_id>', methods=['DELETE'])
+def delete_survey(survey_id):
+    response_object = {'status': 'success'}
+    if request.method == 'DELETE':
+        cur = conn.cursor()
+        cur.execute("DELETE FROM Survey WHERE SurveyID='{}'".format(survey_id))
+        conn.commit()
+        cur.close()
+        response_object['message'] = 'Umfrage gelöscht!'
+    return jsonify(response_object)
+
+@app.route('/survey/edit/<survey_id>', methods=['PUT'])
+def edit_survey(survey_id):
+    response_object = {'status': 'success'}
+    if request.method == 'PUT':
+        surveyData = request.get_json()
+        title = surveyData['title']
+        description = surveyData['description']
+        password = surveyData['password']
+        cur = conn.cursor()
+        cur.execute("START TRANSACTION;")
+        if (title):
+            cur.execute("UPDATE Survey SET SurveyTitle='{}' WHERE SurveyID='{}'".format(title, survey_id))
+        if (description):
+            cur.execute("UPDATE Survey SET SurveyDescription='{}' WHERE SurveyID='{}'".format(description, survey_id))
+        if (password):
+            h = sha256()
+            h.update(('%s' % (password)).encode('utf-8'))
+            h_password = h.hexdigest()
+            cur.execute("UPDATE Survey SET SurveyPassword='{}' WHERE SurveyID='{}'".format(h_password, survey_id))
+        cur.execute("COMMIT;")
+        conn.commit()
+        cur.close()
+        response_object['message'] = 'Kurs editiert!'
+    return jsonify(response_object)
+
+@app.route('/survey/password/<survey_id>', methods=['POST'])
+def survey_verify(survey_id):
+    response_object = {'status': 'success'}
+    if request.method == 'POST':
+        surveyData = request.get_json()
+        surveyID = survey_id
+        password = surveyData['password']
+        h = sha256()
+        h.update(('%s' % (password)).encode('utf-8'))
+        h_password = h.hexdigest()
+        cur = conn.cursor()
+        cur.execute("SELECT SurveyPassword FROM Survey WHERE SurveyID='{}'".format(surveyID))
+        survey_pw = cur.fetchall()
+        cur.close()
+        if (h_password == survey_pw[0][0]):
+           #get_survey_data(survey_id)
+           response_object['message'] = 'Erfolgreich!'
+           return jsonify(response_object)
+        else:
+            password = ''
+            return jsonify(response_object), 400
+
+@app.route('/survey/questions/<survey_id>', methods=['GET'])
+def get_question_data(survey_id):
+    cur = conn.cursor()
+    #cur.execute('SELECT Survey.SurveyID, Survey.SurveyTitle, Survey.SurveyDescription, Question.QuestionID, Question.QuestionText, Question.QuestionType, AnswerOption.AnswerOptionID, AnswerOption.AnswerOptionText FROM Survey_Question INNER JOIN Survey ON Survey_Question.SurveyID = Survey.SurveyID INNER JOIN Question ON Survey_Question.QuestionID = Question.QuestionID INNER JOIN AnswerOption ON Survey_Question.QuestionID = AnswerOption.QuestionID WHERE Survey.SurveyID={};'.format(survey_id))
+    cur.execute('SELECT Question.QuestionID, Question.QuestionText, Question.QuestionType FROM Survey_Question INNER JOIN Survey ON Survey_Question.SurveyID = Survey.SurveyID INNER JOIN Question ON Survey_Question.QuestionID = Question.QuestionID INNER JOIN AnswerOption ON Survey_Question.QuestionID = AnswerOption.QuestionID WHERE Survey.SurveyID={} GROUP BY Question.QuestionID;'.format(survey_id))
+    data = cur.fetchall()
+    cur.close()
+    return jsonify(data)
+
+
+@app.route('/survey/answeroptions/<survey_id>', methods=['GET'])
+def get_answeroption_data(survey_id):
+    cur = conn.cursor()
+    cur.execute('SELECT AnswerOption.QuestionID, AnswerOption.AnswerOptionText, AnswerOption.AnswerOptionID FROM Survey_Question INNER JOIN Survey ON Survey_Question.SurveyID = Survey.SurveyID INNER JOIN Question ON Survey_Question.QuestionID = Question.QuestionID INNER JOIN AnswerOption ON Survey_Question.QuestionID = AnswerOption.QuestionID WHERE Survey.SurveyID={};'.format(survey_id))
+    data = cur.fetchall()
+    cur.close()
+    return jsonify(data)
+
+
+@app.route('/survey/send', methods=['POST'])
+def survey_send():
+    response_object = {'status': 'success'}
+    if request.method == 'POST':
+        AnswerData = request.get_json()
+        surveyID = AnswerData['survey']
+        answers = AnswerData['answers']
+        cur = conn.cursor()
+        cur.execute("START TRANSACTION;")
+        for answer in answers:
+            cur.execute("INSERT INTO Answer(SurveyID, AnswerOptionID) VALUES('{}', '{}');".format(surveyID, answer))
+        cur.execute("COMMIT;")
+        conn.commit()
+        cur.close()
+    return jsonify(response_object)
 
 if __name__ == '__main__':
     app.run(debug=True)

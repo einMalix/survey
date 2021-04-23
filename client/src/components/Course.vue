@@ -25,14 +25,14 @@
         <th>Enddatum</th>
     </tr>
     </thead>
-    <tbody v-for="course in courses" :key="course">
-        <tr v-on:click="onClickListElem(course[0])">
+    <tbody class="Course" v-for="course in courses" :key="course">
+        <tr v-on:click="onClickListElemCourse(course[0])">
             <td>{{ course[1] }}</td>
             <td>{{ course[3].substring(0, 16) }}</td>
             <td>{{ course[4].substring(0, 16) }}</td>
         </tr>
         <tr class="CourseInfos" v-if="showCourseInfos && CourseInfosID == course[0]">
-            <p>Beschreibung: {{ course[2] }}</p>
+            <td>Beschreibung: {{ course[2] }}</td>
             <button v-if="hideEditButton == false" v-on:click="CourseOnEdit(course)">Ändern</button>
             <button v-if="hideDeleteButton == false" v-on:click="CourseOnDelete">Löschen</button>
             <div v-if="showEditForm">
@@ -59,6 +59,43 @@
               <button v-on:click="CourseDeleteOnCancel">Abbrechen</button>
             </div>
         </tr>
+        <tr v-if="showCourseInfos && CourseInfosID == course[0]">
+          <div v-for="survey in surveys" :key="survey">
+            <table>
+              <tbody>
+                <tr v-if="course[0] == survey[3]" v-on:click="onClickListElemSurvey(survey[0])">
+                  <td>{{ survey[1] }}</td>
+                </tr>
+                <tr v-if="showSurveyInfos && SurveyInfosID == survey[0]">
+                  <td>{{ survey[2] }}</td>
+                  <button v-if="hideEditSurveyButton == false"
+                  v-on:click="SurveyOnEdit(survey)">Ändern</button>
+                  <button v-if="hideDeleteSurveyButton == false"
+                  v-on:click="SurveyOnDelete">Löschen</button>
+                  <div v-if="showEditSurveyForm">
+                    Titel<input name="title" type="text" v-model="EditTitleSurvey" />
+                    <br>
+                    Beschreibung<input name="description" type="text"
+                    v-model="EditDescriptionSurvey" />
+                    <br>
+                    Passwort<input name="password" type="password" v-model="EditPasswordSurvey" />
+                    <br>
+                    <questionBox @getQuestionList="onGetQuestionList"></questionBox>
+                    <br><br>
+                    <button v-on:click="SurveyEditOnEdit(survey[0])">Ändern</button>
+                    <button v-on:click="SurveyEditOnCancel">Abbrechen</button>
+                  </div>
+                  <div v-if="showDeleteSurveyForm">
+                    <p>Wirklich löschen?</p>
+                    <br>
+                    <button v-on:click="SurveyDeleteOnDelete(survey[0])">Löschen</button>
+                    <button v-on:click="SurveyDeleteOnCancel">Abbrechen</button>
+                  </div>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </tr>
     </tbody>
     </table>
 </div>
@@ -67,9 +104,16 @@
 <script>
 import axios from 'axios';
 
+import QuestionBox from './QuestionBox.vue';
+
+const crypto = require('crypto');
+
 export default {
   name: 'Course',
-  props: ['userData', 'courses'],
+  components: {
+    questionBox: QuestionBox,
+  },
+  props: ['userData', 'courses', 'surveys'],
   data() {
     return {
       showAddCourseForm: false,
@@ -79,16 +123,26 @@ export default {
       AddDateStart: '',
       AddDateEnd: '',
       showCourseInfos: false,
+      showSurveyInfos: false,
       CourseInfosID: '',
+      SurveyInfosID: '',
       showDeleteForm: false,
       hideDeleteButton: false,
+      showDeleteSurveyForm: false,
+      hideDeleteSurveyButton: false,
       EditTitle: '',
       EditDescription: '',
       EditDateStart: '',
       EditDateEnd: new Date().toISOString().slice(0, 10),
       showEditForm: false,
       hideEditButton: false,
+      showEditSurveyForm: false,
+      hideEditSurveyButton: false,
+      EditTitleSurvey: '',
+      EditDescriptionSurvey: '',
+      EditPasswordSurvey: '',
       userLogin: this.userData.login,
+      Questions: [],
 
     };
   },
@@ -140,25 +194,41 @@ export default {
           console.error(error);
         });
     },
-    onClickListElem(courseID) {
+    onClickListElemCourse(courseID) {
       if (this.CourseInfosID === courseID) {
         this.showCourseInfos = !this.showCourseInfos;
       } else {
         this.showCourseInfos = true;
         this.CourseInfosID = courseID;
-        this.showDeleteForm = false;
-        this.hideDeleteButton = false;
-        this.showEditForm = false;
-        this.hideEditButton = false;
       }
+      this.showDeleteForm = false;
+      this.hideDeleteButton = false;
+      this.showEditForm = false;
+      this.hideEditButton = false;
+      this.showSurveyInfos = false;
+      this.SurveyInfosID = '';
+    },
+    onClickListElemSurvey(surveyID) {
+      if (this.SurveyInfosID === surveyID) {
+        this.showSurveyInfos = !this.showSurveyInfos;
+      } else {
+        this.showSurveyInfos = true;
+        this.SurveyInfosID = surveyID;
+      }
+      this.showDeleteSurveyForm = false;
+      this.hideDeleteSurveyButton = false;
+      this.showEditSurveyForm = false;
+      this.hideEditSurveyButton = false;
     },
     CourseOnDelete() {
       this.showDeleteForm = true;
       this.hideDeleteButton = true;
+      this.hideEditButton = true;
     },
     CourseDeleteOnCancel() {
       this.showDeleteForm = false;
       this.hideDeleteButton = false;
+      this.hideEditButton = false;
     },
     CourseDeleteOnDelete(courseID) {
       const path = `http://localhost:5000/course/delete/${courseID}`;
@@ -180,10 +250,12 @@ export default {
       this.EditDateEnd = courseEnd;
       this.showEditForm = true;
       this.hideEditButton = true;
+      this.hideDeleteButton = true;
     },
     CourseEditOnCancel() {
       this.showEditForm = false;
       this.hideEditButton = false;
+      this.hideDeleteButton = false;
     },
     CourseEditOnEdit(courseID) {
       if (this.EditTitle === '' && this.EditDescription === '' && this.EditDateStart === '' && this.EditDateEnd === '') {
@@ -212,8 +284,81 @@ export default {
           });
       }
     },
+    SurveyOnDelete() {
+      this.showDeleteSurveyForm = true;
+      this.hideDeleteSurveyButton = true;
+      this.hideEditSurveyButton = true;
+    },
+    SurveyDeleteOnCancel() {
+      this.showDeleteSurveyForm = false;
+      this.hideDeleteSurveyButton = false;
+      this.hideEditSurveyButton = false;
+    },
+    SurveyDeleteOnDelete(surveyID) {
+      const path = `http://localhost:5000/survey/delete/${surveyID}`;
+      axios.delete(path)
+        .then(() => {
+          this.$emit('getSurveys');
+        })
+        .catch((error) => {
+        // eslint-disable-next-line
+          console.error(error)
+        });
+    },
+    SurveyOnEdit(survey) {
+      // eslint-disable-next-line
+      const [surveyID, surveyTitle, surveyDescription, surveyPassword] = survey;
+      this.EditTitleSurvey = surveyTitle;
+      this.EditDescriptionSurvey = surveyDescription;
+      this.EditPasswordSurvey = '';
+      this.showEditSurveyForm = true;
+      this.hideEditSurveyButton = true;
+      this.hideDeleteSurveyButton = true;
+    },
+    SurveyEditOnCancel() {
+      this.showEditSurveyForm = false;
+      this.hideEditSurveyButton = false;
+      this.hideDeleteSurveyButton = false;
+    },
+    SurveyEditOnEdit(surveyID) {
+      if (this.EditTitle === '' && this.EditDescription === '' && this.EditPasswordSurvey === '') {
+        // eslint-disable-next-line
+        console.error(error)
+      } else {
+        const path = `http://localhost:5000/survey/edit/${surveyID}`;
+        const hashPW = crypto.createHash('sha1').update(this.EditPasswordSurvey).digest('hex');
+        axios.put(path, {
+          title: this.EditTitleSurvey,
+          description: this.EditDescriptionSurvey,
+          password: hashPW,
+        })
+          .then(() => {
+            this.$emit('getSurveys');
+            this.EditTitleSurvey = '';
+            this.EditDescriptionSurvey = '';
+            this.EditPasswordSurvey = '';
+            this.showEditSurveyForm = false;
+            this.hideEditSurveyButton = false;
+          })
+          .catch((error) => {
+            // eslint-disable-next-line
+            console.error(error);
+          });
+      }
+    },
+    onGetQuestionList(value) {
+      this.Questions = value;
+    },
   },
   created() {
   },
 };
 </script>
+
+<style scoped>
+.Course {
+  border: 2px solid black;
+  padding: 5px;
+}
+
+</style>
