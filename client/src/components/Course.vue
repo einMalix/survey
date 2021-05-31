@@ -1,5 +1,6 @@
 <template>
 <div>
+<div v-if="showOverview">
   <div class="AddCourse">
     <button v-on:click="onClickButtonAddCourse"
     v-if="hideAddCourseButton == false">Kurs hinzufügen</button>
@@ -72,6 +73,7 @@
                   v-on:click="SurveyOnEdit(survey)">Ändern</button>
                   <button v-if="hideDeleteSurveyButton == false"
                   v-on:click="SurveyOnDelete">Löschen</button>
+                  <button v-on:click="SurveyOnEvaluation(course, survey)">Auswertung</button>
                   <div v-if="showEditSurveyForm">
                     Titel<input name="title" type="text" v-model="EditTitleSurvey" />
                     <br>
@@ -79,8 +81,6 @@
                     v-model="EditDescriptionSurvey" />
                     <br>
                     Passwort<input name="password" type="password" v-model="EditPasswordSurvey" />
-                    <br>
-                    <questionBox @getQuestionList="onGetQuestionList"></questionBox>
                     <br><br>
                     <button v-on:click="SurveyEditOnEdit(survey[0])">Ändern</button>
                     <button v-on:click="SurveyEditOnCancel">Abbrechen</button>
@@ -99,23 +99,31 @@
     </tbody>
     </table>
 </div>
+<div class="showEvaluation">
+  <evaluation v-if="showOverview == false"
+  v-bind:EvaluationCourse="EvaluationCourse" v-bind:EvaluationSurvey="EvaluationSurvey"
+  @changeShowOverview="changeShowOverview" v-bind:QuestionsList="QuestionsList"
+  v-bind:AnswerList="AnswerList"></evaluation>
+  </div>
+</div>
 </template>
 
 <script>
 import axios from 'axios';
 
-import QuestionBox from './QuestionBox.vue';
+import Evaluation from './Evaluation.vue';
 
 const crypto = require('crypto');
 
 export default {
   name: 'Course',
   components: {
-    questionBox: QuestionBox,
+    evaluation: Evaluation,
   },
   props: ['userData', 'courses', 'surveys'],
   data() {
     return {
+      showOverview: true,
       showAddCourseForm: false,
       hideAddCourseButton: false,
       AddTitle: '',
@@ -143,6 +151,10 @@ export default {
       EditPasswordSurvey: '',
       userLogin: this.userData.login,
       Questions: [],
+      EvaluationCourse: '',
+      EvaluationSurvey: '',
+      QuestionsList: '',
+      AnswerList: '',
 
     };
   },
@@ -155,6 +167,9 @@ export default {
     },
   },
   methods: {
+    changeShowOverview() {
+      this.showOverview = true;
+    },
     onClickButtonAddCourse() {
       this.AddTitle = '';
       this.AddDescription = '';
@@ -346,8 +361,29 @@ export default {
           });
       }
     },
+    SurveyOnEvaluation(course, survey) {
+      this.getEvaluation(survey[0]);
+      this.EvaluationCourse = course;
+      this.EvaluationSurvey = survey;
+      this.showOverview = false;
+    },
     onGetQuestionList(value) {
       this.Questions = value;
+    },
+    getEvaluation(surveyID) {
+      const path = `http://localhost:5000/evaluation/${surveyID}`;
+      axios.get(path)
+        // eslint-disable-next-line
+        .then((res) => {
+          // eslint-disable-next-line
+          this.QuestionsList = res.data[0];
+          // eslint-disable-next-line
+          this.AnswerList = res.data[1];
+        })
+        .catch((error) => {
+        // eslint-disable-next-line
+          console.error(error);
+        });
     },
   },
   created() {

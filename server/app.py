@@ -393,5 +393,50 @@ def survey_send():
         cur.close()
     return jsonify(response_object)
 
+@app.route('/evaluation/<survey_id>', methods=['GET'])
+def evaluation(survey_id):
+    response_object = {'status': 'success'}
+    if request.method == 'GET':
+        cur = conn.cursor()
+        cur.execute("SELECT Question.QuestionID, Question.QuestionText, Question.QuestionType FROM Survey INNER JOIN Survey_Question ON Survey.SurveyID = Survey_Question.SurveyID INNER JOIN Question ON Survey_Question.QuestionID = Question.QuestionID WHERE Survey.SurveyID = {};".format(survey_id))
+        questions = cur.fetchall()
+        cur.execute("SELECT Answer.AnswerOptionID, AnswerOption.QuestionID FROM Answer RIGHT JOIN AnswerOption ON Answer.AnswerOptionID = AnswerOption.AnswerOptionID WHERE Answer.SurveyID = {} ORDER BY AnswerOption.QuestionID;".format(survey_id))
+        answers = cur.fetchall()
+        cur.execute("SELECT * FROM AnswerOption;")
+        answeroptions = cur.fetchall()
+        maxquestionID = 0
+        minquestionID = 1000
+        for answer in answers:
+            if answer[1] > maxquestionID:
+                maxquestionID = answer[1]
+            if answer[1] < minquestionID:
+                minquestionID = answer[1]
+        liste = []
+        for questionID in range(minquestionID, maxquestionID+1):
+            for answeroptionID in answeroptions:
+                if answeroptionID[2] == questionID:
+                    liste.append([questionID, answeroptionID[0], 0])
+        for answer in answers:
+            for i, listitem in enumerate(liste):
+                if answer[1] == listitem[0]:
+                    if answer[0] == listitem[1]:
+                        liste[i][2] += 1
+        for questionID in range(minquestionID, maxquestionID+1):
+            answersum = 0
+            for listitem in liste:
+                if questionID == listitem[0]:
+                    answersum += listitem[2]
+            for i, listitem in enumerate(liste):
+                if questionID == listitem[0]:
+                    liste[i][2] /= answersum
+        for i, listitem in enumerate(liste):
+            for answeroption in answeroptions:
+                if answeroption[2]== listitem[0]:
+                    if answeroption[0] == listitem[1]:
+                        liste[i][1] = answeroption[1]
+        print(liste)
+        cur.close()
+    return jsonify(questions, liste)    
+
 if __name__ == '__main__':
     app.run(debug=True)
