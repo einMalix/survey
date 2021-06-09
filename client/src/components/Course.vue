@@ -103,7 +103,7 @@
   <evaluation v-if="showOverview == false"
   v-bind:EvaluationCourse="EvaluationCourse" v-bind:EvaluationSurvey="EvaluationSurvey"
   @changeShowOverview="changeShowOverview" v-bind:QuestionsList="QuestionsList"
-  v-bind:AnswerList="AnswerList"></evaluation>
+  v-bind:AnswerList="AnswerList" v-bind:ChartCheck="ChartCheck"></evaluation>
   </div>
 </div>
 </template>
@@ -155,6 +155,7 @@ export default {
       EvaluationSurvey: '',
       QuestionsList: '',
       AnswerList: '',
+      ChartCheck: false,
 
     };
   },
@@ -168,6 +169,7 @@ export default {
   },
   methods: {
     changeShowOverview() {
+      this.ChartCheck = false;
       this.showOverview = true;
     },
     onClickButtonAddCourse() {
@@ -365,6 +367,7 @@ export default {
       this.getEvaluation(survey[0]);
       this.EvaluationCourse = course;
       this.EvaluationSurvey = survey;
+      this.ChartCheck = true;
       this.showOverview = false;
     },
     onGetQuestionList(value) {

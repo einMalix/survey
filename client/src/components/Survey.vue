@@ -50,14 +50,9 @@
           </div>
         </div>
         <div v-if="question[2] == 'Skala'">
-              <input type="range" name="skala" list="answers">
-              <datalist id="answers">
-                <option value="0" label="0"></option>
-                <option value="25" label="1"></option>
-                <option value="50" label="2"></option>
-                <option value="75" label="3"></option>
-                <option value="100" label="4"></option>
-              </datalist>
+              <input type="range" v-bind:name="question[0]"
+              min="0" max="100" step="1" v-model="SkalaValue">
+              {{SkalaValue}}
           </div>
         </form>
       </div>
@@ -91,6 +86,7 @@ export default {
       SelectedAnswers: [],
       surveyID: '',
       alert: false,
+      SkalaValue: 0,
     };
   },
   methods: {
@@ -176,6 +172,30 @@ export default {
       for (let i = 0; i < inputs.length; i += 1) {
         if ((inputs[i].type === 'radio' || inputs[i].type === 'checkbox') && inputs[i].checked) {
           this.SelectedAnswers.push(inputs[i].value);
+        }
+      }
+      // eslint-disable-next-line
+      for (const answeroption in this.AnswerOptionData) {
+        if (this.SkalaValue >= 0 && this.SkalaValue <= 20) {
+          if (this.AnswerOptionData[answeroption][1] === '0-20') {
+            this.SelectedAnswers.push(this.AnswerOptionData[answeroption][2]);
+          }
+        } else if (this.SkalaValue >= 21 && this.SkalaValue <= 40) {
+          if (this.AnswerOptionData[answeroption][1] === '20-40') {
+            this.SelectedAnswers.push(this.AnswerOptionData[answeroption][2]);
+          }
+        } else if (this.SkalaValue >= 41 && this.SkalaValue <= 60) {
+          if (this.AnswerOptionData[answeroption][1] === '40-60') {
+            this.SelectedAnswers.push(this.AnswerOptionData[answeroption][2]);
+          }
+        } else if (this.SkalaValue >= 61 && this.SkalaValue <= 80) {
+          if (this.AnswerOptionData[answeroption][1] === '60-80') {
+            this.SelectedAnswers.push(this.AnswerOptionData[answeroption][2]);
+          }
+        } else if (this.SkalaValue >= 81 && this.SkalaValue <= 100) {
+          if (this.AnswerOptionData[answeroption][1] === '80-100') {
+            this.SelectedAnswers.push(this.AnswerOptionData[answeroption][2]);
+          }
         }
       }
       const path = 'http://localhost:5000/survey/send';
