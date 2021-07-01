@@ -17,7 +17,9 @@
                   <td><button v-on:click="onClickSurvey"
                   v-if="!hideSurveyButton">Beantworten</button>
                     <div v-if="showPasswordForm">
-                        Passwort<input type="password" v-model="Password" />
+                      <form>
+                        Passwort<input type="password" v-model="Password" autocomplete="off"/>
+                      </form>
                     <br>
                     <button v-on:click="onSubmit(survey[0])">Bestätigen</button>
                     <button v-on:click="onCancel()">Abbrechen</button>
@@ -57,8 +59,6 @@
         </form>
       </div>
       <br>
-      <b-alert variant="warning" v-model="alert" v-if="alert">Nicht alles ausgefüllt!</b-alert>
-      <br>
       <button v-on:click="SendAnswers(surveyID)">Absenden</button>
     </div>
 </div>
@@ -85,7 +85,6 @@ export default {
       AnswerOptionData: '',
       SelectedAnswers: [],
       surveyID: '',
-      alert: false,
       SkalaValue: 0,
     };
   },
@@ -161,7 +160,6 @@ export default {
         // eslint-disable-next-line
         for (const radio in radios) {
           if (radio.type === 'radio' && !radio.checked) {
-            this.alert = true;
             return;
           }
         }
@@ -216,3 +214,12 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.Overview {
+  padding: 20px;
+}
+.Survey {
+  padding: 20px;
+}
+</style>

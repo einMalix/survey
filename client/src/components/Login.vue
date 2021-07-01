@@ -33,10 +33,12 @@
         </button>
     </div>
     <div v-show="showLoginForm">
-        Login <input name="login" type="text" v-model="Login" />
+      <form>
+        Login <input name="login" type="text" v-model="Login" autocomplete="on" />
         <br>
-        Passwort <input name="password" type="password" v-model="Password" />
+        Passwort <input name="password" type="password" v-model="Password" autocomplete="off" />
         <br>
+      </form>
         <button v-on:click="onLogin">Einloggen</button>
         <button v-on:click="onCancelLoginForm">Abbrechen</button>
     </div>
@@ -112,7 +114,8 @@ export default {
           this.onCancelLoginForm();
         })
         .catch((error) => {
-        // eslint-disable-next-line
+          this.Password = '';
+          // eslint-disable-next-line
           console.error(error);
         });
     },
@@ -121,6 +124,8 @@ export default {
       axios.post(path, {
         login: this.Login,
       });
+      this.Login = '';
+      this.Password = '';
       this.showPasswordForm = false;
       this.loginOK = false;
       this.$emit('updateUserLogin', this.loginOK);

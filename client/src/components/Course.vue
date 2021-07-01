@@ -1,21 +1,29 @@
 <template>
 <div>
-<div v-if="showOverview">
+<div class="CourseList" v-if="showOverview">
   <div class="AddCourse">
     <button v-on:click="onClickButtonAddCourse"
     v-if="hideAddCourseButton == false">Kurs hinzufügen</button>
-    <form class="AddCourseForm" v-if="showAddCourseForm">
-      Titel<input name="title" type="text" v-model="AddTitle" />
-      <br>
-      Beschreibung<input name="description" type="text" v-model="AddDescription" />
-      <br>
-      Startdatum<input name="datestart" type="date" v-model="AddDateStart" />
-      <br>
-      Enddatum<input name="dateend" type="date" v-model="AddDateEnd" />
-      <br><br>
-      <button v-on:click.prevent="AddCourseOnAdd">Hinzufügen</button>
-      <button v-on:click="AddCourseOnCancel">Abbrechen</button>
-    </form>
+    <div v-if="showAddCourseForm">
+      <form class="AddCourseForm">
+        <label for="title">Titel</label><br>
+        <input name="title" id="title" type="text"
+        placeholder="Titel des Kurses" v-model="AddTitle" /><br>
+        <label for="description">Beschreibung</label><br>
+        <input name="description" id="description" type="text"
+        placeholder="Beschreibung des Kurses" v-model="AddDescription" /><br>
+        <label for="datestart">Startdatum</label><br>
+        <input name="datestart" id="datestart" type="date" v-model="AddDateStart" /><br>
+        <label for="dateend">Enddatum</label><br>
+        <input name="dateend" id="dateend" type="date" v-model="AddDateEnd" /><br>
+      </form>
+      <div class="AddCourseButtons">
+        <div class="ButtonsCenter">
+          <button v-on:click.prevent="AddCourseOnAdd">Hinzufügen</button>
+          <button v-on:click="AddCourseOnCancel">Abbrechen</button>
+        </div>
+      </div>
+    </div>
   </div>
 
     <table>
@@ -27,15 +35,17 @@
     </tr>
     </thead>
     <tbody class="Course" v-for="course in courses" :key="course">
-        <tr v-on:click="onClickListElemCourse(course[0])">
+        <tr class="Border" v-on:click="onClickListElemCourse(course[0])">
             <td>{{ course[1] }}</td>
             <td>{{ course[3].substring(0, 16) }}</td>
             <td>{{ course[4].substring(0, 16) }}</td>
         </tr>
         <tr class="CourseInfos" v-if="showCourseInfos && CourseInfosID == course[0]">
             <td>Beschreibung: {{ course[2] }}</td>
-            <button v-if="hideEditButton == false" v-on:click="CourseOnEdit(course)">Ändern</button>
-            <button v-if="hideDeleteButton == false" v-on:click="CourseOnDelete">Löschen</button>
+            <td><button v-if="hideEditButton == false"
+            v-on:click="CourseOnEdit(course)">Ändern</button></td>
+            <td><button v-if="hideDeleteButton == false"
+            v-on:click="CourseOnDelete">Löschen</button></td>
             <div v-if="showEditForm">
               Titel<input name="title" type="text" v-model="EditTitle" />
               <br>
@@ -103,7 +113,7 @@
   <evaluation v-if="showOverview == false"
   v-bind:EvaluationCourse="EvaluationCourse" v-bind:EvaluationSurvey="EvaluationSurvey"
   @changeShowOverview="changeShowOverview" v-bind:QuestionsList="QuestionsList"
-  v-bind:AnswerList="AnswerList" v-bind:ChartCheck="ChartCheck"></evaluation>
+  v-bind:AnswerList="AnswerList"></evaluation>
   </div>
 </div>
 </template>
@@ -155,7 +165,6 @@ export default {
       EvaluationSurvey: '',
       QuestionsList: '',
       AnswerList: '',
-      ChartCheck: false,
 
     };
   },
@@ -169,7 +178,10 @@ export default {
   },
   methods: {
     changeShowOverview() {
-      this.ChartCheck = false;
+      this.EvaluationCourse = '';
+      this.EvaluationSurvey = '';
+      this.QuestionsList = '';
+      this.AnswerList = '';
       this.showOverview = true;
     },
     onClickButtonAddCourse() {
@@ -367,14 +379,13 @@ export default {
       this.getEvaluation(survey[0]);
       this.EvaluationCourse = course;
       this.EvaluationSurvey = survey;
-      this.ChartCheck = true;
       this.showOverview = false;
     },
     onGetQuestionList(value) {
       this.Questions = value;
     },
     getEvaluation(surveyID) {
-      const path = `http://localhost:5000/evaluation/${surveyID}`;
+      const path = `http://localhost:5000/evaluation2/${surveyID}`;
       axios.get(path)
         // eslint-disable-next-line
         .then((res) => {
@@ -399,5 +410,37 @@ export default {
   border: 2px solid black;
   padding: 5px;
 }
-
+.CourseList {
+  padding: 20px;
+}
+.AddCourse {
+  padding-bottom: 20px;
+}
+.AddCourseButtons {
+  width: 50%;
+  position: relative;
+}
+.ButtonsCenter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.Border {
+  border: 2px solid black;
+}
+button {
+  margin-right: 20px;
+}
+input {
+  margin-bottom: 20px;
+  width: 50%;
+  box-sizing: border-box;
+  padding: 5px;
+}
+input:focus {
+  background-color: lightblue;
+}
+label {
+  font-size: 18px;
+}
 </style>

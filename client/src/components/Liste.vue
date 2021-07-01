@@ -1,29 +1,35 @@
 <template>
 <div>
+  <div class="AddUser">
+  <button v-on:click="onClickButtonAddUser"
+    v-if="hideAddUserButton == false">Nutzer hinzufügen</button>
+    <div v-if="showAddUserForm">
     <form>
-    Login <input name="login" type="text" v-model="newLogin" />
-    <br>
-    Passwort <input name="passwort" type="password" v-model="newPasswort" />
-    <br>
-    Vorname <input name="vorname" type="text" v-model="newVorname" />
-    <br>
-    Nachname <input name="nachname" type="text" v-model="newNachname" />
-    <br>
-    <br>
+    <label for="login">Login</label><br>
+    <input name="login" id="login" type="text" v-model="newLogin" autocomplete="off"/><br>
+    <label for="password">Passwort</label><br>
+    <input name="passwort" id="password" type="password"
+    v-model="newPasswort" autocomplete="off"/><br>
+    <label for="vorname">Vorname</label><br>
+    <input name="vorname" id="vorname" type="text" v-model="newVorname" autocomplete="off"/><br>
+    <label for="nachname">Nachname</label><br>
+    <input name="nachname" id="nachname" type="text" v-model="newNachname" autocomplete="off"/><br>
     <fieldset>
     <label>
-        <input type="radio" name="rolle" value="Administrator" v-model="newRolle" />
-        Administrator
+        <input type="radio" id="admin" name="rolle" value="Administrator" v-model="newRolle" />
+        <label for="admin"> Administrator</label><br>
     </label>
-    <br>
     <label>
-        <input type="radio" name="rolle" value="Kursleiter" v-model="newRolle" />
-        Kursleiter
+        <input type="radio" id="leiter" name="rolle" value="Kursleiter" v-model="newRolle" />
+        <label for="leiter">Kursleiter</label><br>
     </label>
     </fieldset>
     <button v-on:click.prevent="onSubmit()">Hinzufügen</button>
+    <button v-on:click="AddUserOnCancel">Abbrechen</button>
     </form>
-    <br>
+    </div>
+    </div>
+    <div class="UserList">
  <table>
     <thead>
     <tr>
@@ -34,8 +40,8 @@
         <th>Passwort</th>
     </tr>
     </thead>
-    <tbody>
-        <tr v-for="user in users" :key="user">
+    <tbody class="UserTable" v-for="user in users" :key="user">
+        <tr class="User">
             <td>{{ user[0] }}</td>
             <td>{{ user[1] }}</td>
             <td>{{ user[2] }}</td>
@@ -52,6 +58,7 @@
         </tr>
     </tbody>
 </table>
+</div>
 </div>
 </template>
 
@@ -70,6 +77,8 @@ export default {
       newNachname: '',
       newRolle: '',
       newPasswort: '',
+      hideAddUserButton: false,
+      showAddUserForm: false,
     };
   },
   methods: {
@@ -154,9 +163,34 @@ export default {
         this.editUser(user[0]);
       }
     },
+    onClickButtonAddUser() {
+      this.newLogin = '';
+      this.newVorname = '';
+      this.newNachname = '';
+      this.newRolle = '';
+      this.newPasswort = '';
+      this.showAddUserForm = true;
+      this.hideAddUserButton = true;
+    },
+    AddUserOnCancel() {
+      this.showAddUserForm = false;
+      this.hideAddUserButton = false;
+    },
   },
   created() {
     this.getUsers();
   },
 };
 </script>
+
+<style scoped>
+  .AddUser {
+    padding: 20px;
+  }
+  .UserList {
+    padding: 20px;
+  }
+  .User {
+    border: 2px solid black;
+  }
+</style>

@@ -1,5 +1,6 @@
 <template>
 <div>
+    <div class="description">
     <p>Kursname: {{EvaluationCourse[1]}}</p>
     <p>Kursbeschreibung: {{EvaluationCourse[2]}}</p>
     <!-- eslint-disable-next-line -->
@@ -7,10 +8,9 @@
 
     <p>Umfragenname: {{EvaluationSurvey[1]}}</p>
     <p>Umfragenbeschreibung: {{EvaluationSurvey[2]}}</p>
-
-    <dr/><dr/>
-    <div v-for="question in QuestionsList" :key="question">
-        <p>{{question[1]}}</p>
+    </div>
+    <div class="question" v-for="question in QuestionsList" :key="question">
+        <h5>{{question[1]}} ({{question[3]}} Antwort/en)</h5>
         <div>
             <piechart v-bind:name="'chart' + question[0]"
             v-bind:piedata="createList(question[0])"></piechart>
@@ -19,7 +19,6 @@
             <p v-if="answer[0] == question[0]">{{answer[1]}} - {{answer[2]*100}}%</p>
         </div>
     </div>
-    <dr/><dr/>
     <button v-on:click="OnClickReady">Fertig</button>
 </div>
 </template>
@@ -28,30 +27,9 @@
 import Piechart from './Chart.vue';
 
 export default {
-  props: ['EvaluationCourse', 'EvaluationSurvey', 'QuestionsList', 'AnswerList', 'ChartCheck'],
+  props: ['EvaluationCourse', 'EvaluationSurvey', 'QuestionsList', 'AnswerList'],
   components: {
     piechart: Piechart,
-  },
-  data() {
-    return {
-      questioninfo: '',
-      answeranswerlist: ['zu oberflächlich', 'adäquat', 'zu tief'],
-      answeranswer: [0.25, 0.5, 0.25],
-      state: {
-        chartData: {
-          datasets: [
-            {
-              data: [],
-              backgroundColor: ['Red', 'Yellow', 'Blue', 'Green', 'Purple'],
-            },
-          ],
-          labels: [],
-        },
-        chartOptions: {
-          responsive: false,
-        },
-      },
-    };
   },
   methods: {
     OnClickReady() {
@@ -86,3 +64,13 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.description {
+  padding: 20px;
+}
+
+.question {
+  padding: 20px;
+}
+</style>

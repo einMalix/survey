@@ -5,13 +5,15 @@
             <option disabled value="">Kurs auswählen </option>
             <option v-for="course in courses" :key="course"> {{ course[0] }}, {{ course[1] }}:
               {{ course[3].substring(0, 16) }} - {{ course[4].substring(0, 16) }} </option>
-        </select>
-        <br>
-        Titel<input name="title" type="text" v-model="AddTitle" />
-        <br>
-        Beschreibung<input name="description" type="text" v-model="AddDescription" />
-        <br>
-        Passwort<input name="password" type="password" v-model="AddPassword" />
+        </select><br>
+        <label for="title">Titel</label><br>
+        <input name="title" id="title" type="text" v-model="AddTitle" autocomplete="off"/><br>
+        <label for="description">Beschreibung</label><br>
+        <input name="description" id="description" type="text"
+        v-model="AddDescription" autocomplete="off"/><br>
+        <label for="password">Passwort</label><br>
+        <input name="password" id="password" type="password"
+        v-model="AddPassword" autocomplete="off"/>
         <br>
         <questionbox @getQuestionList="onGetQuestionList"></questionbox>
         <br><br>
@@ -80,3 +82,12 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.AddSurvey {
+  padding: 20px;
+}
+select {
+  margin-bottom: 20px;
+}
+</style>

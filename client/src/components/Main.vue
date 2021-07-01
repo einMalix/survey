@@ -72,6 +72,7 @@ export default {
       this.loginOK = value;
       this.HomeAdminIsClicked = false;
       this.HomeKursleiterIsClicked = false;
+      this.UmfrageKursleiterIsClicked = false;
     },
     onGetUserData(value) {
       this.userData = value;
