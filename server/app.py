@@ -448,31 +448,40 @@ def evaluation2(survey_id):
     response_object = {'status': 'success'}
     if request.method == 'GET':
         cur = conn.cursor()
-        cur.execute("SELECT Question.QuestionID, Question.QuestionText, Question.QuestionType, COUNT(Question.QuestionID) AS Answersum FROM Answer INNER JOIN AnswerOption ON Answer.AnswerOptionID = AnswerOption.AnswerOptionID INNER JOIN Question ON AnswerOption.QuestionID = Question.QuestionID WHERE Answer.SurveyID = {} GROUP BY Question.QuestionID;".format(survey_id))
+        cur.execute("SELECT Question.QuestionID, Question.QuestionText, Question.QuestionType, COUNT(Question.QuestionID) AS Answersum \
+                    FROM Answer \
+                    INNER JOIN AnswerOption ON Answer.AnswerOptionID = AnswerOption.AnswerOptionID \
+                    INNER JOIN Question ON AnswerOption.QuestionID = Question.QuestionID \
+                    WHERE Answer.SurveyID = {} \
+                    GROUP BY Question.QuestionID;".format(survey_id))
         questions = cur.fetchall()
-        cur.execute("SELECT AnswerOption.QuestionID, AnswerOption.AnswerOptionText FROM AnswerOption INNER JOIN Survey_Question ON AnswerOption.QuestionID = Survey_Question.QuestionID WHERE Survey_Question.SurveyID = {};".format(survey_id))
+        cur.execute("SELECT AnswerOption.QuestionID, AnswerOption.AnswerOptionText \
+                    FROM AnswerOption \
+                    INNER JOIN Survey_Question ON AnswerOption.QuestionID = Survey_Question.QuestionID \
+                    WHERE Survey_Question.SurveyID = {};".format(survey_id))
         answers = cur.fetchall()
-        cur.execute("SELECT AnswerOption.QuestionID, AnswerOption.AnswerOptionText, COUNT(AnswerOption.AnswerOptionID) AS GivenAnswers FROM Answer INNER JOIN AnswerOption ON Answer.AnswerOptionID = AnswerOption.AnswerOptionID WHERE Answer.SurveyID = {} GROUP BY AnswerOption.AnswerOptionID;".format(survey_id))
+        cur.execute("SELECT AnswerOption.QuestionID, AnswerOption.AnswerOptionText, COUNT(AnswerOption.AnswerOptionID) AS GivenAnswers \
+                    FROM Answer \
+                    INNER JOIN AnswerOption ON Answer.AnswerOptionID = AnswerOption.AnswerOptionID \
+                    WHERE Answer.SurveyID = {} \
+                    GROUP BY AnswerOption.AnswerOptionID;".format(survey_id))
         givenanswers = cur.fetchall()
         cur.close()
+
         answers = [list(x) for x in answers]
         for i, answer in enumerate(answers):
             for givenanswer in givenanswers:
                 if givenanswer[0] == answer[0] and givenanswer[1] == answer[1]:
                     answers[i].append(givenanswer[2])
                     break
-            try:
-                print(answers[i][2])
-            except:
+
+            if len(answers[i]) <=3:
                 answers[i].append(0)
-            
+
             for question in questions:
                 if question[0] == answer[0]:
                     answers[i][2] = answer[2] / question[3]
                     break
-
-        print(answers)
-
     return jsonify(questions, answers)
 
 if __name__ == '__main__':
